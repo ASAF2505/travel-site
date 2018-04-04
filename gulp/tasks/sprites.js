@@ -1,12 +1,25 @@
 var gulp = require('gulp'),
     svg_sprite = require('gulp-svg-sprite'),
     rename = require('gulp-rename'),
-    del = require('del');
+    del = require('del'),
+    svg2png = require('gulp-svg2png');
 
 
 var config ={
+	shape:{
+		spacing:{
+			padding:1
+		}
+	},
 	mode:{
 		css:{
+			variables:{
+			   replaceSvgWithPng: function(){
+			   	 return function(sprite,render){
+                       return render(sprite).split('svg').join('png');
+			   	 }
+			   }
+			},
 			sprite:'sprite.svg',
 			render:{
 				css:{
@@ -29,8 +42,15 @@ var config ={
  });
 
 
- gulp.task('copy_sprite_graphic',['create_sprite'],function(){
- 	return gulp.src('./app/temp/sprite/css/**/*.svg')
+  gulp.task('create_png_copy',['create_sprite'],function(){
+ 	return gulp.src('./app/temp/sprite/css/*.svg')
+ 	 .pipe( svg2png() )
+ 	 .pipe( gulp.dest('./app/temp/sprite/css') );
+ });
+
+
+ gulp.task('copy_sprite_graphic',['create_png_copy'],function(){
+ 	return gulp.src('./app/temp/sprite/css/**/*.{svg,png}')
  	   .pipe( gulp.dest('./app/assets/images/sprites') );
  });
 
@@ -46,4 +66,4 @@ var config ={
      return del('./app/temp/sprite');
  });
 
- gulp.task('icons',['begin_clean','create_sprite','copy_sprite_graphic','copy_sprite_css','end_clean']);
+ gulp.task('icons',['begin_clean','create_sprite','create_png_copy','copy_sprite_graphic','copy_sprite_css','end_clean']);
